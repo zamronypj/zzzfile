@@ -45,6 +45,11 @@ final class File implements CacheStorageInterface
         $this->filenamePrefix = $filenamePrefix;
     }
 
+    /**
+     * get file path based on cache identifier
+     * @param  string $cacheId cache identifier
+     * @return string filepath
+     */
     private function path($cacheId)
     {
         $hashedCacheId = $this->hashService->hash($cacheId);
@@ -82,4 +87,21 @@ final class File implements CacheStorageInterface
         return file_put_contents($this->path($cacheId), $data);
     }
 
+    /**
+     * remove data from storage by cache id
+     * @param  string $cacheId cache identifier
+     * @return boolean true if cache is successfully removed
+     */
+    public function remove($cacheId)
+    {
+        return unlink($this->path($cacheId));
+    }
+
+    /**
+     * remove all data from storage
+     */
+    public function clear()
+    {
+        //TODO: implement delete all cache files in cache directory
+    }
 }
