@@ -7,6 +7,18 @@ use Juhara\ZzzCache\Contracts\HashInterface;
 
 /**
 * cache implementation using File as storage
+* ----------------------------------------------
+* Note:
+* This storage implementation use file access time and file modified time
+* to store time to live of cache.
+* ttl = (file access time - file modified time)
+*
+* When we create the file, we will make 'file modified time' set to current time
+* and and file access time a time in future (current time + time to live)
+*
+* Everytime we check file cache existence, we will update file modified time to
+* current time but maintain file access time to its original value
+*
 * @author Zamrony P. Juhara <zamronypj@yahoo.com>
 */
 final class File implements CacheStorageInterface
@@ -63,7 +75,25 @@ final class File implements CacheStorageInterface
      */
     public function exists($cacheId)
     {
-        return file_exists($this->path($cacheId));
+        $filename = $this->path($cacheId);
+
+        if (! file_exists($filename)) {
+            return false;
+        }
+
+        //ok file is exist, test if it is not expired
+        //we considered file is expired if modified time >= access time
+        $fstat = stat($filename);
+        if ($fstat['mtime'] >= $fstat['atime']) {
+            //if we get here then cache is expired,
+            //delete file and tell cache manager that cache is missed
+            unlink($filename);
+            return false;
+        }
+
+        //update file time info and tell cache manager that cache is hit
+        touch($filename, time(), $fstat['atime']);
+        return true;
     }
 
     /**
@@ -80,11 +110,15 @@ final class File implements CacheStorageInterface
      * write data to storage by cache name
      * @param  string $cacheId cache identifier
      * @param  string $data item to cache in serialized format
+     * @param  int $ttl time to live
      * @return int number of bytes written
      */
-    public function write($cacheId, $data)
+    public function write($cacheId, $data, $ttl)
     {
-        return file_put_contents($this->path($cacheId), $data);
+        $filename = $this->path($cacheId);
+        $bytesWritten = file_put_contents($filename, $data);
+        $currTime = time();
+        touch($filename, $currTime, $currTime + $ttl);
     }
 
     /**
