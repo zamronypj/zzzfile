@@ -103,7 +103,7 @@ final class File implements CacheStorageInterface
      */
     public function read($cacheId)
     {
-        return file_get_contents($this->path($cacheId));
+        return unserialize(file_get_contents($this->path($cacheId)));
     }
 
     /**
@@ -116,7 +116,7 @@ final class File implements CacheStorageInterface
     public function write($cacheId, $data, $ttl)
     {
         $filename = $this->path($cacheId);
-        $bytesWritten = file_put_contents($filename, $data);
+        $bytesWritten = file_put_contents($filename, serialize($data));
         $currTime = time();
         touch($filename, $currTime, $currTime + $ttl);
     }
