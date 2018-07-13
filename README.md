@@ -17,7 +17,7 @@ Run through composer
 
     use Juhara\ZzzCache\Cache;
     use Juhara\ZzzCache\Storages\File;
-    use Juhara\ZzzCache\Helpers\TimeUtility;
+    use Juhara\ZzzCache\Helpers\ExpiryCalculator;
     use Juhara\ZzzCache\Helpers\Md5Hash;
 
     // create a file-based cache where all cache
@@ -30,7 +30,7 @@ Run through composer
             'app/storages/cache/',
             'cache'
         ),
-        new TimeUtility()
+        new ExpiryCalculator()
     );
 
 # Contributing
